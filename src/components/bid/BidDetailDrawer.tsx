@@ -146,7 +146,14 @@ export default function BidDetailDrawer({
                   {detail.budgetAmount > 0 ? formatPrice(detail.budgetAmount) : "-"}
                 </Descriptions.Item>
                 <Descriptions.Item label="수요기관">{detail.demandAgency || "-"}</Descriptions.Item>
-                <Descriptions.Item label="담당자">{detail.contactName || "-"}</Descriptions.Item>
+                <Descriptions.Item label="담당자">
+                  <div>
+                    <div>{detail.contactName || "-"}</div>
+                    {detail.contactPhone && (
+                      <div className={styles.contactPhone}>{detail.contactPhone}</div>
+                    )}
+                  </div>
+                </Descriptions.Item>
                 <Descriptions.Item label="지역제한">
                   <span style={{ whiteSpace: "pre-line" }}>{detail.regionRestriction || "-"}</span>
                 </Descriptions.Item>
