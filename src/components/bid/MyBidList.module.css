@@ -1,0 +1,47 @@
+.wrap {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.clickableRow:hover td {
+  background: #f8fafc !important;
+}
+
+.empty {
+  padding: 48px 24px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.emptyTitle {
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.emptyDesc {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.emptyDesc a {
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.emptyDesc a:hover {
+  text-decoration: underline;
+}
+
+.removeFavoriteIcon {
+  color: #f59e0b;
+}
