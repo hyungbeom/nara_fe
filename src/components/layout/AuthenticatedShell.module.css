@@ -1,0 +1,18 @@
+.page {
+  min-height: 100vh;
+  background: #e5e7eb;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #4b5563;
+}

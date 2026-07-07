@@ -1,0 +1,118 @@
+.detailContent {
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.detailContentHtml p {
+  margin-bottom: 8px;
+}
+
+.sectionTitle {
+  margin: 20px 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.emptyAttachments {
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.attachmentList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.attachmentItem {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.attachmentItem:last-child {
+  border-bottom: none;
+}
+
+.attachmentItem a {
+  color: #1d4ed8;
+}
+
+.attachmentItem a:hover {
+  text-decoration: underline;
+}
+
+.externalLink {
+  margin-top: 16px;
+}
+
+.externalLink a {
+  color: #1d4ed8;
+  font-size: 14px;
+}
+
+.externalLink a:hover {
+  text-decoration: underline;
+}
+
+.drawerTitle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-right: 8px;
+}
+
+.drawerTitleText {
+  flex: 1;
+  min-width: 0;
+  padding-right: 8px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.favoriteButton {
+  flex-shrink: 0;
+  margin-top: -4px;
+  color: #94a3b8;
+  font-size: 20px;
+}
+
+.favoriteButton:hover {
+  color: #f59e0b !important;
+}
+
+.favoriteButtonActive {
+  color: #f59e0b;
+}
+
+.fileName {
+  word-break: break-all;
+}
+
+.loadingBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.error {
+  margin-top: 12px;
+}

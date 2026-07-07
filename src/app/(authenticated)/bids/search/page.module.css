@@ -1,0 +1,15 @@
+.pageTitle {
+  margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 14px;
+}

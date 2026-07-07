@@ -1,0 +1,208 @@
+.form {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  padding: 14px 16px 18px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px;
+  margin-bottom: 12px;
+}
+
+.row {
+  margin-bottom: 12px;
+}
+
+.rowSplit {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px 24px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.fieldInline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.input {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 12px;
+}
+
+.input:focus,
+.select:focus,
+.dateInput:focus,
+.priceInput:focus,
+.industryCodeInput:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.industryGroup {
+  display: flex;
+  gap: 6px;
+}
+
+.industryCodeInput {
+  width: 60px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  text-align: center;
+  font-size: 12px;
+}
+
+.select {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  min-width: 96px;
+  font-size: 12px;
+}
+
+.dateGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.dateRange {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dateInput {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 12px;
+}
+
+.dateSeparator {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.dateHint {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.monthButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.monthButton {
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  color: #374151;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.monthButton:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.priceGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.priceInput {
+  width: 100px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 12px;
+}
+
+.priceUnit {
+  font-size: 12px;
+  color: #374151;
+  margin-right: 4px;
+}
+
+.submitWrap {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.submit {
+  min-width: 120px;
+  height: 34px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .grid,
+  .rowSplit {
+    grid-template-columns: 1fr;
+  }
+
+  .field {
+    grid-template-columns: 1fr;
+  }
+}

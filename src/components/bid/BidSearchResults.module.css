@@ -1,0 +1,63 @@
+.empty {
+  margin-top: 24px;
+  padding: 40px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+}
+
+.wrap {
+  margin-top: 24px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.count {
+  color: #2563eb;
+}
+
+.table {
+  padding: 0 16px 16px;
+}
+
+.link {
+  color: #2563eb;
+}
+
+.link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.filterDropdown {
+  padding: 8px;
+}
+
+.filterInput {
+  display: block;
+  width: 220px;
+  margin-bottom: 8px;
+}
+
+.filterIcon {
+  color: #94a3b8;
+}
+
+.filterIconActive {
+  color: #1d4ed8;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
