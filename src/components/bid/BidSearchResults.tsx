@@ -103,11 +103,18 @@ export default function BidSearchResults({
   const columns = useMemo<TableColumnsType<BidSearchResult>>(
     () => [
       {
+        title: "순번",
+        key: "rowNo",
+        width: 64,
+        fixed: "left",
+        align: "center",
+        render: (_value, _record, index) => (pageNo - 1) * pageSize + index + 1,
+      },
+      {
         title: "공고번호",
         dataIndex: "bidNo",
         key: "bidNo",
         width: 120,
-        fixed: "left",
         sorter: (a, b) => a.bidNo.localeCompare(b.bidNo, "ko"),
         ...getTextFilterProps("bidNo"),
       },
@@ -156,6 +163,18 @@ export default function BidSearchResults({
         onFilter: (value, record) => record.contractMethod === value,
       },
       {
+        title: "공동수급",
+        dataIndex: "jointSupply",
+        key: "jointSupply",
+        width: 140,
+        ellipsis: true,
+        sorter: (a, b) => (a.jointSupply ?? "").localeCompare(b.jointSupply ?? "", "ko"),
+        filters: buildUniqueFilters(results, "jointSupply"),
+        filterSearch: true,
+        onFilter: (value, record) => record.jointSupply === value,
+        render: (value: string) => value || "-",
+      },
+      {
         title: "입찰방식",
         dataIndex: "bidMethod",
         key: "bidMethod",
@@ -202,7 +221,7 @@ export default function BidSearchResults({
         onFilter: (value, record) => record.agency === value,
       },
     ],
-    [results]
+    [results, pageNo, pageSize]
   );
 
   if (!hasSearched) {
@@ -231,7 +250,7 @@ export default function BidSearchResults({
         dataSource={results}
         size="middle"
         bordered
-        scroll={{ x: 1440 }}
+        scroll={{ x: 1644 }}
         loading={isLoading}
         rowClassName={() => styles.clickableRow}
         onRow={(record) => ({

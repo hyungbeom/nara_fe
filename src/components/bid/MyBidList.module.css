@@ -6,11 +6,30 @@
 .header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
   padding: 14px 16px;
   border-bottom: 1px solid #e5e7eb;
   font-size: 15px;
   font-weight: 600;
+}
+
+.headerMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selectedCount {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
 }
 
 .count {

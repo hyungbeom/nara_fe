@@ -1,3 +1,4 @@
+import type { AnthropicConversationHistory, AnthropicMessageResult, AnthropicPptJob, AnthropicPptJobStartRequest, AnthropicProjectCheckResult, AnthropicStatus } from "@/types/anthropic";
 import type { ApiResponse, LoginRequest, LoginUser } from "@/types/auth";
 import type { BidDetail, BidFavorite, BidFavoriteAttachment, BidSearchPage, BidSearchRequest } from "@/types/bid";
 import type { GoogleDriveFile, GoogleDriveList, GoogleDriveStatus } from "@/types/googleDrive";
@@ -357,4 +358,62 @@ export async function importNotebookLMAuth(masterToken: File, storageState: File
   if (!response.ok || !body.success) {
     throw new Error(body.message || "인증 파일 업로드에 실패했습니다.");
   }
+}
+
+export function getAnthropicStatus() {
+  return request<AnthropicStatus>("/api/anthropic/status");
+}
+
+export function checkAnthropicProjects(names: string[]) {
+  return request<AnthropicProjectCheckResult>("/api/anthropic/projects/check", {
+    method: "POST",
+    body: JSON.stringify({ names }),
+  });
+}
+
+export function getAnthropicConversationHistory(projectName: string) {
+  const params = new URLSearchParams({ projectName });
+  return request<AnthropicConversationHistory>(`/api/anthropic/projects/history?${params.toString()}`);
+}
+
+export function sendAnthropicProjectMessage(
+  projectName: string,
+  prompt: string,
+  attachmentFileIds: string[] = [],
+  driveFolderId?: string
+) {
+  return request<AnthropicMessageResult>("/api/anthropic/projects/messages", {
+    method: "POST",
+    body: JSON.stringify({ projectName, prompt, attachmentFileIds, driveFolderId }),
+  });
+}
+
+export function createAnthropicMessage(payload: { prompt: string; system?: string; maxTokens?: number }) {
+  return request<AnthropicMessageResult>("/api/anthropic/messages", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function startAnthropicPptJob(payload: AnthropicPptJobStartRequest) {
+  return request<AnthropicPptJob>("/api/anthropic/ppt-jobs", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getAnthropicPptJob(jobId: string) {
+  return request<AnthropicPptJob>(`/api/anthropic/ppt-jobs/${jobId}`);
+}
+
+export function listAnthropicPptJobs(options?: { driveFolderIds?: string[]; activeOnly?: boolean }) {
+  const params = new URLSearchParams();
+  if (options?.driveFolderIds && options.driveFolderIds.length > 0) {
+    params.set("driveFolderIds", options.driveFolderIds.join(","));
+  }
+  if (options?.activeOnly) {
+    params.set("activeOnly", "true");
+  }
+  const query = params.toString();
+  return request<AnthropicPptJob[]>(`/api/anthropic/ppt-jobs${query ? `?${query}` : ""}`);
 }

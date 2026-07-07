@@ -89,8 +89,36 @@
 }
 
 .filePane {
+  position: relative;
   flex: 1;
   min-height: 420px;
+}
+
+.filePaneDragOver {
+  outline: 2px dashed #2563eb;
+  outline-offset: -2px;
+  background: #eff6ff;
+}
+
+.dropOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  background: rgba(239, 246, 255, 0.92);
+  color: #1d4ed8;
+  font-size: 15px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.dropOverlayIcon {
+  font-size: 36px;
 }
 
 .tableRow {
@@ -164,6 +192,57 @@
 .notebookExistsTag:hover {
   color: #15803d;
   border-color: #15803d;
+}
+
+.claudeReadyTag {
+  cursor: pointer;
+}
+
+.claudeReadyTag,
+.claudeMissingTag,
+.claudeExistsTag {
+  cursor: pointer;
+}
+
+.claudeMissingTag:hover {
+  color: #6d28d9;
+  border-color: #6d28d9;
+}
+
+.claudeExistsTag:hover {
+  color: #15803d;
+  border-color: #15803d;
+}
+
+.claudeReadyTag:hover {
+  color: #6d28d9;
+  border-color: #6d28d9;
+}
+
+.pptIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pptIconButton:hover {
+  background: #fff7ed;
+}
+
+.pptIconRunning {
+  cursor: default;
+}
+
+.pptIcon {
+  color: #ea580c;
+  font-size: 20px;
 }
 
 .projectModalHint {
@@ -298,6 +377,21 @@
   line-height: 1.4;
 }
 
+.stepRunStatusBarFailed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+}
+
+.stepRunStatusBarFailed .stepRunStatusMeta {
+  color: #b91c1c;
+}
+
 .stepButtonRowRunning {
   padding: 4px;
   border: 1px solid #91caff;
@@ -307,6 +401,26 @@
 
 .stepRunButtonRunning {
   font-weight: 600;
+}
+
+.stepButtonRowCompleted {
+  padding: 4px;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  background: #f0fdf4;
+}
+
+.stepRunButtonCompleted {
+  border-color: #22c55e !important;
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  font-weight: 600;
+}
+
+.stepRunButtonCompleted:hover {
+  border-color: #16a34a !important;
+  background: #bbf7d0 !important;
+  color: #14532d !important;
 }
 
 .researchStatusBar {

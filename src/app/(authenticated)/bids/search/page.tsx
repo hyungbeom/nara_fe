@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import BidSearchForm from "@/components/bid/BidSearchForm";
 import BidSearchResults from "@/components/bid/BidSearchResults";
 import { searchBids } from "@/lib/api";
 import type { BidSearchPage, BidSearchRequest } from "@/types/bid";
+import { DEFAULT_INDUSTRY_CODE, DEFAULT_INDUSTRY_NAME } from "@/types/bid";
 import styles from "./page.module.css";
 
 const EMPTY_PAGE: BidSearchPage = {
@@ -18,14 +20,72 @@ const EMPTY_PAGE: BidSearchPage = {
 
 const POLL_INTERVAL_MS = 2000;
 const MAX_POLL_ATTEMPTS = 30;
+const DEFAULT_PAGE_SIZE = 100;
 
-export default function BidSearchPage() {
+function buildUrlSearchParams(criteria: BidSearchRequest, pageNo: number, pageSize: number) {
+  const params = new URLSearchParams();
+  params.set("page", String(pageNo));
+  params.set("pageSize", String(pageSize));
+  params.set("dateType", criteria.dateType ?? "announceDate");
+  params.set("startDate", criteria.startDate);
+  params.set("endDate", criteria.endDate);
+  params.set("contractMethod", criteria.contractMethod);
+  params.set("industry", criteria.industry ?? DEFAULT_INDUSTRY_NAME);
+  params.set("industryCode", criteria.industryCode ?? DEFAULT_INDUSTRY_CODE);
+  if (criteria.bidName) {
+    params.set("bidName", criteria.bidName);
+  }
+  if (criteria.minPrice != null) {
+    params.set("minPrice", String(criteria.minPrice));
+  }
+  if (criteria.maxPrice != null) {
+    params.set("maxPrice", String(criteria.maxPrice));
+  }
+  return params;
+}
+
+function parseCriteriaFromUrl(searchParams: URLSearchParams): BidSearchRequest | null {
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
+  if (!startDate || !endDate) {
+    return null;
+  }
+
+  const dateType = searchParams.get("dateType");
+  const minPrice = searchParams.get("minPrice");
+  const maxPrice = searchParams.get("maxPrice");
+
+  return {
+    bidName: searchParams.get("bidName") ?? undefined,
+    industry: searchParams.get("industry") ?? DEFAULT_INDUSTRY_NAME,
+    industryCode: searchParams.get("industryCode") ?? DEFAULT_INDUSTRY_CODE,
+    contractMethod: (searchParams.get("contractMethod") as BidSearchRequest["contractMethod"]) ?? "전체",
+    dateType: dateType === "openingDate" ? "openingDate" : "announceDate",
+    startDate,
+    endDate,
+    minPrice: minPrice ? Number(minPrice) : undefined,
+    maxPrice: maxPrice ? Number(maxPrice) : undefined,
+  };
+}
+
+function BidSearchPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [criteria, setCriteria] = useState<BidSearchRequest | null>(null);
   const [page, setPage] = useState<BidSearchPage>(EMPTY_PAGE);
   const [hasSearched, setHasSearched] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const pollVersionRef = useRef(0);
+  const initializedFromUrlRef = useRef(false);
+
+  const updateUrl = useCallback(
+    (searchCriteria: BidSearchRequest, pageNo: number, pageSize: number) => {
+      const query = buildUrlSearchParams(searchCriteria, pageNo, pageSize).toString();
+      router.replace(`/bids/search?${query}`, { scroll: false });
+    },
+    [router]
+  );
 
   const pollAccurateTotal = useCallback(
     async (
@@ -99,15 +159,35 @@ export default function BidSearchPage() {
     [pollAccurateTotal]
   );
 
+  useEffect(() => {
+    if (initializedFromUrlRef.current) {
+      return;
+    }
+    initializedFromUrlRef.current = true;
+
+    const parsed = parseCriteriaFromUrl(searchParams);
+    if (!parsed) {
+      return;
+    }
+
+    const pageNo = Math.max(Number(searchParams.get("page") ?? 1), 1);
+    const pageSize = Math.max(Number(searchParams.get("pageSize") ?? DEFAULT_PAGE_SIZE), 1);
+    setCriteria(parsed);
+    void fetchPage(parsed, pageNo, pageSize);
+  }, [fetchPage, searchParams]);
+
   const handleSearch = (searchCriteria: BidSearchRequest) => {
     setCriteria(searchCriteria);
-    void fetchPage(searchCriteria, 1, 100);
+    updateUrl(searchCriteria, 1, DEFAULT_PAGE_SIZE);
+    void fetchPage(searchCriteria, 1, DEFAULT_PAGE_SIZE);
   };
 
   const handlePageChange = (pageNo: number, pageSize: number) => {
-    if (criteria) {
-      void fetchPage(criteria, pageNo, pageSize);
+    if (!criteria) {
+      return;
     }
+    updateUrl(criteria, pageNo, pageSize);
+    void fetchPage(criteria, pageNo, pageSize);
   };
 
   return (
@@ -125,5 +205,13 @@ export default function BidSearchPage() {
         onPageChange={handlePageChange}
       />
     </>
+  );
+}
+
+export default function BidSearchPage() {
+  return (
+    <Suspense fallback={<div className={styles.loading}>검색 페이지를 불러오는 중...</div>}>
+      <BidSearchPageContent />
+    </Suspense>
   );
 }

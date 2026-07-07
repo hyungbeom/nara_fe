@@ -106,6 +106,7 @@ export default function BidDetailDrawer({
   const displayOpeningDate = detail?.openingDate ?? bid?.openingDate ?? "-";
   const displayEstimatedPrice = detail?.estimatedPrice ?? bid?.estimatedPrice ?? 0;
   const displayAgency = detail?.agency ?? bid?.agency ?? "-";
+  const displayJointSupply = detail?.jointSupply ?? bid?.jointSupply ?? "-";
   const displayDetailUrl = detail?.detailUrl ?? bid?.detailUrl;
 
   return (
@@ -141,6 +142,7 @@ export default function BidDetailDrawer({
             <Descriptions.Item label="공고번호">{displayBidNo}</Descriptions.Item>
             <Descriptions.Item label="업종">{displayIndustry}</Descriptions.Item>
             <Descriptions.Item label="계약방법">{displayContractMethod}</Descriptions.Item>
+            <Descriptions.Item label="공동수급">{displayJointSupply}</Descriptions.Item>
             <Descriptions.Item label="공고일자">{displayAnnounceDate}</Descriptions.Item>
             <Descriptions.Item label="개찰일시">{displayOpeningDate || "-"}</Descriptions.Item>
             <Descriptions.Item label="추정가격">{formatPrice(displayEstimatedPrice)}</Descriptions.Item>

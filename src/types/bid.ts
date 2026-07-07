@@ -46,6 +46,7 @@ export interface BidDetail {
   openingDate: string;
   successBidMethod: string;
   bidMethod: string;
+  jointSupply: string;
   detailContent: string;
   attachments: BidAttachment[];
 }
@@ -67,6 +68,7 @@ export interface BidSearchResult {
   industry: string;
   contractMethod: string;
   bidMethod: string;
+  jointSupply: string;
   announceDate: string;
   openingDate: string;
   estimatedPrice: number;

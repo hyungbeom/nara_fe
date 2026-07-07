@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   App,
   Breadcrumb,
@@ -57,8 +57,9 @@ import {
 } from "@/lib/api";
 import MarkdownPreviewModal from "@/components/notebooklm/MarkdownPreviewModal";
 import NotebookSummaryPanel from "@/components/notebooklm/NotebookSummaryPanel";
+import PromptResultCard from "@/components/notebooklm/PromptResultCard";
 import StepPromptEditorModal from "@/components/notebooklm/StepPromptEditorModal";
-import { buildMarkdownPreviewFromPrompt, resolveNotebookPromptTitle } from "@/components/notebooklm/notebooklmPrompt";
+import { buildPromptsWithActiveStepRun, deriveCompletedStepIds } from "@/components/notebooklm/notebooklmPrompt";
 import type { GoogleDriveFile, GoogleDriveList, GoogleDriveStatus } from "@/types/googleDrive";
 import type { NotebookLMProjectPrompt, NotebookLMProjectSourceItem, NotebookLMProjectSummary, NotebookLMResearchStatus, NotebookLMStep, NotebookLMStepRunStatus } from "@/types/notebooklm";
 import styles from "./GoogleDriveExplorer.module.css";
@@ -181,6 +182,7 @@ export default function GoogleDriveExplorer() {
   const [historyPrompts, setHistoryPrompts] = useState<NotebookLMProjectPrompt[]>([]);
   const [notebookSteps, setNotebookSteps] = useState<NotebookLMStep[]>([]);
   const [stepRunStatus, setStepRunStatus] = useState<NotebookLMStepRunStatus | null>(null);
+  const [completedStepIds, setCompletedStepIds] = useState<Set<string>>(() => new Set());
   const [pendingStepId, setPendingStepId] = useState<string | null>(null);
   const [researchStatus, setResearchStatus] = useState<NotebookLMResearchStatus | null>(null);
   const [notebookSources, setNotebookSources] = useState<NotebookLMProjectSourceItem[]>([]);
@@ -192,6 +194,8 @@ export default function GoogleDriveExplorer() {
   const [stepEditorMode, setStepEditorMode] = useState<"add" | "edit">("edit");
   const [editingStep, setEditingStep] = useState<NotebookLMStep | null>(null);
   const [loadingSourcePreviewId, setLoadingSourcePreviewId] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const dragDepthRef = useRef(0);
 
   const researchReportSource = useMemo(
     () => notebookSources.find((source) => source.category === "research_report") ?? null,
@@ -214,6 +218,19 @@ export default function GoogleDriveExplorer() {
     }
     return notebookSteps.find((step) => isSameStepId(step.id, runningStepId))?.label ?? runningStepId;
   }, [notebookSteps, runningStepId]);
+
+  const markStepCompleted = useCallback((stepId?: string | null) => {
+    const normalized = normalizeStepId(stepId);
+    if (!normalized) {
+      return;
+    }
+    setCompletedStepIds((current) => {
+      if (current.has(normalized)) {
+        return current;
+      }
+      return new Set([...current, normalized]);
+    });
+  }, []);
 
   const loadNotebookProjectStatus = useCallback(async (files: GoogleDriveFile[]) => {
     const folderNames = files.filter((file) => file.folder).map((file) => file.name);
@@ -394,26 +411,112 @@ export default function GoogleDriveExplorer() {
     }
   }, [listing, loadFolder, message, selectedFile]);
 
+  const uploadFiles = useCallback(
+    async (files: File[]) => {
+      if (!listing || files.length === 0) {
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        const results = await Promise.allSettled(
+          files.map((file) => uploadGoogleDriveFile(listing.currentFolderId, file))
+        );
+        const succeeded = results.filter((result) => result.status === "fulfilled").length;
+        const failed = results.length - succeeded;
+
+        if (succeeded > 0) {
+          if (files.length === 1) {
+            message.success(`"${files[0].name}" 업로드 완료`);
+          } else {
+            message.success(`${succeeded}개 파일 업로드 완료`);
+          }
+          await loadFolder(listing.currentFolderId);
+        }
+        if (failed > 0) {
+          message.error(failed === 1 ? "파일 업로드에 실패했습니다." : `${failed}개 파일 업로드에 실패했습니다.`);
+        }
+      } catch (error) {
+        message.error(error instanceof Error ? error.message : "업로드에 실패했습니다.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [listing, loadFolder, message]
+  );
+
   const handleUpload = useCallback(
     async (file: File) => {
       if (!listing) {
         return Upload.LIST_IGNORE;
       }
 
-      setIsSubmitting(true);
-      try {
-        await uploadGoogleDriveFile(listing.currentFolderId, file);
-        message.success(`"${file.name}" 업로드 완료`);
-        await loadFolder(listing.currentFolderId);
-      } catch (error) {
-        message.error(error instanceof Error ? error.message : "업로드에 실패했습니다.");
-      } finally {
-        setIsSubmitting(false);
-      }
-
+      await uploadFiles([file]);
       return Upload.LIST_IGNORE;
     },
-    [listing, loadFolder, message]
+    [listing, uploadFiles]
+  );
+
+  const hasDroppedFiles = useCallback((event: React.DragEvent) => {
+    return Array.from(event.dataTransfer.types).includes("Files");
+  }, []);
+
+  const canAcceptDrop = listing != null && !isSubmitting && !isLoading;
+
+  const handleDragEnter = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!canAcceptDrop || !hasDroppedFiles(event)) {
+        return;
+      }
+      dragDepthRef.current += 1;
+      setIsDragOver(true);
+    },
+    [canAcceptDrop, hasDroppedFiles]
+  );
+
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!canAcceptDrop || !hasDroppedFiles(event)) {
+        return;
+      }
+      event.dataTransfer.dropEffect = "copy";
+      setIsDragOver(true);
+    },
+    [canAcceptDrop, hasDroppedFiles]
+  );
+
+  const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+    if (dragDepthRef.current === 0) {
+      setIsDragOver(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    async (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      dragDepthRef.current = 0;
+      setIsDragOver(false);
+
+      if (!canAcceptDrop) {
+        return;
+      }
+
+      const files = Array.from(event.dataTransfer.files);
+      if (files.length === 0) {
+        return;
+      }
+
+      await uploadFiles(files);
+    },
+    [canAcceptDrop, uploadFiles]
   );
 
   const openProjectModal = useCallback(
@@ -558,6 +661,7 @@ export default function GoogleDriveExplorer() {
       setHistoryPrompts([]);
       setResearchStatus(null);
       setStepRunStatus(null);
+      setCompletedStepIds(new Set());
       setPendingStepId(null);
       setNotebookSources([]);
       setHistoryModalLoading(true);
@@ -565,16 +669,49 @@ export default function GoogleDriveExplorer() {
       setProjectSummary(null);
 
       try {
-        const [historyResult, stepsResult, researchResult, sourcesResult, summaryResult, stepStatusResult] = await Promise.all([
+        const [
+          historySettled,
+          stepsSettled,
+          researchSettled,
+          sourcesSettled,
+          summarySettled,
+          stepStatusSettled,
+        ] = await Promise.allSettled([
           getNotebookLMProjectHistory(folder.name),
           getNotebookLMSteps(),
-          getNotebookLMResearchStatus(folder.name).catch(() => null),
-          getNotebookLMProjectSources(folder.name).catch(() => null),
-          getNotebookLMProjectSummary(folder.name).catch(() => null),
-          getNotebookLMStepRunStatus(folder.name).catch(() => null),
+          getNotebookLMResearchStatus(folder.name),
+          getNotebookLMProjectSources(folder.name),
+          getNotebookLMProjectSummary(folder.name),
+          getNotebookLMStepRunStatus(folder.name),
         ]);
-        setHistoryPrompts(historyResult.prompts);
+
+        const historyResult =
+          historySettled.status === "fulfilled"
+            ? historySettled.value
+            : { authenticated: false, projectName: folder.name, count: 0, prompts: [] };
+        const stepsResult = stepsSettled.status === "fulfilled" ? stepsSettled.value : [];
+        const researchResult = researchSettled.status === "fulfilled" ? researchSettled.value : null;
+        const sourcesResult = sourcesSettled.status === "fulfilled" ? sourcesSettled.value : null;
+        const summaryResult = summarySettled.status === "fulfilled" ? summarySettled.value : null;
+        const stepStatusResult = stepStatusSettled.status === "fulfilled" ? stepStatusSettled.value : null;
+
+        if (historySettled.status === "rejected") {
+          message.warning("프롬프트 기록을 일부만 불러왔습니다.");
+        }
+
+        const restoredPrompts = buildPromptsWithActiveStepRun(
+          historyResult.prompts,
+          stepStatusResult,
+          stepsResult
+        );
+
+        setHistoryPrompts(restoredPrompts);
         setNotebookSteps(stepsResult);
+        const initialCompleted = new Set(deriveCompletedStepIds(stepsResult, restoredPrompts));
+        if (stepStatusResult?.status === "completed" && stepStatusResult.step) {
+          initialCompleted.add(normalizeStepId(stepStatusResult.step));
+        }
+        setCompletedStepIds(initialCompleted);
         if (researchResult) {
           setResearchStatus(researchResult);
         }
@@ -586,6 +723,9 @@ export default function GoogleDriveExplorer() {
         }
         if (stepStatusResult) {
           setStepRunStatus(stepStatusResult);
+          if (stepStatusResult.status === "in_progress" && stepStatusResult.step) {
+            setPendingStepId(stepStatusResult.step);
+          }
         }
       } catch (error) {
         message.error(error instanceof Error ? error.message : "프롬프트 기록을 불러오지 못했습니다.");
@@ -603,6 +743,7 @@ export default function GoogleDriveExplorer() {
     setNotebookSteps([]);
     setNotebookSources([]);
     setStepRunStatus(null);
+    setCompletedStepIds(new Set());
     setPendingStepId(null);
     setResearchStatus(null);
     setHistoryModalLoading(false);
@@ -649,6 +790,7 @@ export default function GoogleDriveExplorer() {
 
       if (result.status === "completed") {
         setPendingStepId(null);
+        markStepCompleted(result.step);
         await loadHistoryPrompts(historyModalFolder.name);
         if (result.answer) {
           setMarkdownPreview({
@@ -659,12 +801,13 @@ export default function GoogleDriveExplorer() {
         message.success(result.message || "프롬프트 실행이 완료되었습니다.");
       } else if (result.status === "failed") {
         setPendingStepId(null);
+        await loadHistoryPrompts(historyModalFolder.name);
         message.error(result.message || "프롬프트 실행에 실패했습니다.");
       }
     }, 3000);
 
     return () => window.clearInterval(intervalId);
-  }, [historyModalFolder, loadHistoryPrompts, loadStepRunStatus, message, stepRunStatus?.status]);
+  }, [historyModalFolder, loadHistoryPrompts, loadStepRunStatus, markStepCompleted, message, stepRunStatus?.status]);
 
   useEffect(() => {
     if (!historyModalFolder) {
@@ -721,6 +864,9 @@ export default function GoogleDriveExplorer() {
         return;
       }
 
+      const step = notebookSteps.find((item) => isSameStepId(item.id, stepId));
+      const stepPrompt = step?.prompt?.trim() ?? "";
+
       setPendingStepId(stepId);
       setStepRunStatus({
         projectName: historyModalFolder.name,
@@ -729,18 +875,44 @@ export default function GoogleDriveExplorer() {
         message: `${stepId} 실행 중`,
       });
 
+      if (stepPrompt) {
+        setHistoryPrompts((current) => {
+          const alreadyRunning = current.some(
+            (item) => item.status === "running" && item.question.trim() === stepPrompt
+          );
+          if (alreadyRunning) {
+            return current;
+          }
+          return [
+            ...current,
+            {
+              turn: current.length + 1,
+              question: stepPrompt,
+              answer: "",
+              status: "running",
+            },
+          ];
+        });
+      }
+
       try {
         const result = await runNotebookLMStep(historyModalFolder.name, stepId);
         setStepRunStatus(result);
-        setPendingStepId(null);
-        if (result.status === "completed" && result.answer) {
+        if (result.status !== "in_progress") {
+          setPendingStepId(null);
+        }
+        if (result.status === "completed") {
+          markStepCompleted(stepId);
           await loadHistoryPrompts(historyModalFolder.name);
-          setMarkdownPreview({
-            title: `${stepId} 결과`,
-            content: result.answer,
-          });
-          message.success(`${stepId} 결과를 생성했습니다.`);
+          if (result.answer) {
+            setMarkdownPreview({
+              title: `${stepId} 결과`,
+              content: result.answer,
+            });
+            message.success(`${stepId} 결과를 생성했습니다.`);
+          }
         } else if (result.status === "failed") {
+          await loadHistoryPrompts(historyModalFolder.name);
           message.error(result.message || "프롬프트 실행에 실패했습니다.");
         } else if (result.status === "in_progress") {
           message.info(result.message || `${stepId} 실행을 시작했습니다.`);
@@ -748,10 +920,11 @@ export default function GoogleDriveExplorer() {
       } catch (error) {
         setPendingStepId(null);
         await loadStepRunStatus(historyModalFolder.name);
+        await loadHistoryPrompts(historyModalFolder.name);
         message.error(error instanceof Error ? error.message : "프롬프트 실행에 실패했습니다.");
       }
     },
-    [historyModalFolder, loadHistoryPrompts, loadStepRunStatus, message, runningStepId]
+    [historyModalFolder, loadHistoryPrompts, loadStepRunStatus, markStepCompleted, message, notebookSteps, runningStepId]
   );
 
   const openAddStepEditor = useCallback(() => {
@@ -932,7 +1105,13 @@ export default function GoogleDriveExplorer() {
   }
 
   return (
-    <div className={styles.explorer}>
+    <div
+      className={styles.explorer}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={(event) => void handleDrop(event)}
+    >
       <div className={styles.toolbar}>
         <div className={styles.navGroup}>
           <Button icon={<ArrowLeftOutlined />} disabled={history.length === 0} onClick={handleBack} />
@@ -1010,7 +1189,13 @@ export default function GoogleDriveExplorer() {
 
       {errorMessage ? <div className={styles.error}>{errorMessage}</div> : null}
 
-      <div className={styles.filePane}>
+      <div className={isDragOver ? `${styles.filePane} ${styles.filePaneDragOver}` : styles.filePane}>
+        {isDragOver ? (
+          <div className={styles.dropOverlay}>
+            <CloudUploadOutlined className={styles.dropOverlayIcon} />
+            <span>여기에 파일을 놓으면 현재 폴더에 업로드됩니다</span>
+          </div>
+        ) : null}
         <Table<GoogleDriveFile>
           rowKey="id"
           size="middle"
@@ -1134,6 +1319,11 @@ export default function GoogleDriveExplorer() {
               NotebookLM 응답을 생성하고 있습니다. 완료까지 수 분 걸릴 수 있습니다.
             </span>
           </div>
+        ) : stepRunStatus?.status === "failed" ? (
+          <div className={styles.stepRunStatusBarFailed}>
+            <Tag color="error">{stepRunStatus.step ?? "STEP"} 실패</Tag>
+            <span className={styles.stepRunStatusMeta}>{stepRunStatus.message}</span>
+          </div>
         ) : null}
         {projectSummary?.showSummary ? (
           <NotebookSummaryPanel
@@ -1163,29 +1353,16 @@ export default function GoogleDriveExplorer() {
           <div className={styles.projectModalLoading}>
             <Spin />
           </div>
-        ) : historyPrompts.length === 0 ? (
+        ) : historyPrompts.length === 0 && !runningStepId ? (
           <Empty description="저장된 프롬프트가 없습니다." />
         ) : (
           <div className={styles.promptList}>
-            {historyPrompts.map((prompt) => (
-              <div key={prompt.turn} className={styles.promptItem}>
-                <div className={styles.promptTurn}>#{prompt.turn}</div>
-                <div className={styles.promptContent}>
-                  <div className={styles.promptQuestion}>{resolveNotebookPromptTitle(prompt.question, prompt.turn)}</div>
-                  <div className={styles.promptMeta}>{prompt.question}</div>
-                  {prompt.answer ? (
-                    <div className={styles.promptActions}>
-                      <Button
-                        size="small"
-                        type="primary"
-                        onClick={() => setMarkdownPreview(buildMarkdownPreviewFromPrompt(prompt))}
-                      >
-                        마크다운 보기
-                      </Button>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
+            {historyPrompts.map((prompt, index) => (
+              <PromptResultCard
+                key={`${prompt.turn}-${index}`}
+                prompt={prompt}
+                onOpenFullscreen={setMarkdownPreview}
+              />
             ))}
           </div>
         )}
@@ -1237,13 +1414,14 @@ export default function GoogleDriveExplorer() {
           <div className={styles.stepButtonList}>
             {notebookSteps.map((step) => {
               const isRunning = isSameStepId(runningStepId, step.id);
+              const isCompleted = completedStepIds.has(normalizeStepId(step.id));
               return (
               <div
                 key={step.id}
-                className={`${styles.stepButtonRow} ${isRunning ? styles.stepButtonRowRunning : ""}`}
+                className={`${styles.stepButtonRow} ${isRunning ? styles.stepButtonRowRunning : ""} ${isCompleted && !isRunning ? styles.stepButtonRowCompleted : ""}`}
               >
                 <Button
-                  className={`${styles.stepRunButton} ${isRunning ? styles.stepRunButtonRunning : ""}`}
+                  className={`${styles.stepRunButton} ${isRunning ? styles.stepRunButtonRunning : ""} ${isCompleted && !isRunning ? styles.stepRunButtonCompleted : ""}`}
                   type={isRunning ? "primary" : "default"}
                   loading={isRunning}
                   disabled={runningStepId != null && !isRunning}

@@ -38,6 +38,8 @@ export type NotebookLMProjectPrompt = {
   turn: number;
   question: string;
   answer: string;
+  status?: "completed" | "failed" | "running" | string;
+  message?: string;
 };
 
 export type NotebookLMProjectHistoryResult = {

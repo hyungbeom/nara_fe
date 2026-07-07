@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Key } from "react";
 import { App, Button, Popconfirm, Spin, Table } from "antd";
 import type { TableColumnsType } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
@@ -32,8 +32,11 @@ export default function MyBidList() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedBid, setSelectedBid] = useState<BidFavorite | null>(null);
+  const selectedBidRef = useRef<BidFavorite | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [removingKey, setRemovingKey] = useState<string | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
+  const [removingKeys, setRemovingKeys] = useState<Set<string>>(() => new Set());
+  const [isBulkRemoving, setIsBulkRemoving] = useState(false);
   const suppressRowClickRef = useRef(false);
 
   const loadFavorites = useCallback(async () => {
@@ -53,16 +56,22 @@ export default function MyBidList() {
 
   const refreshFavorites = useCallback(async (): Promise<BidFavorite | null> => {
     const data = await loadFavorites();
-    let updated: BidFavorite | null = null;
-    setSelectedBid((current) => {
-      if (!current) {
-        return current;
-      }
-      updated = data.find((item) => item.favoriteSeq === current.favoriteSeq) ?? current;
-      return updated;
-    });
+    const current = selectedBidRef.current;
+    if (!current) {
+      return null;
+    }
+
+    const updated = data.find((item) => item.favoriteSeq === current.favoriteSeq) ?? null;
+    if (updated) {
+      setSelectedBid(updated);
+      selectedBidRef.current = updated;
+    }
     return updated;
   }, [loadFavorites]);
+
+  useEffect(() => {
+    selectedBidRef.current = selectedBid;
+  }, [selectedBid]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -70,6 +79,7 @@ export default function MyBidList() {
   }, [loadFavorites]);
 
   const openDetail = (record: BidFavorite) => {
+    selectedBidRef.current = record;
     setSelectedBid(record);
     setDrawerOpen(true);
   };
@@ -77,30 +87,96 @@ export default function MyBidList() {
   const closeDetail = () => {
     setDrawerOpen(false);
     setSelectedBid(null);
+    selectedBidRef.current = null;
   };
+
+  const markRemoving = useCallback((rowKeys: Iterable<string>, removing: boolean) => {
+    setRemovingKeys((current) => {
+      const next = new Set(current);
+      for (const rowKey of rowKeys) {
+        if (removing) {
+          next.add(rowKey);
+        } else {
+          next.delete(rowKey);
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const removeFromList = useCallback((removedKeys: Set<string>) => {
+    setFavorites((prev) => prev.filter((item) => !removedKeys.has(buildRowKey(item))));
+    setSelectedRowKeys((prev) => prev.filter((key) => !removedKeys.has(String(key))));
+    setSelectedBid((current) => {
+      if (current && removedKeys.has(buildRowKey(current))) {
+        setDrawerOpen(false);
+        selectedBidRef.current = null;
+        return null;
+      }
+      return current;
+    });
+  }, []);
 
   const handleRemove = useCallback(async (record: BidFavorite) => {
     const rowKey = buildRowKey(record);
-    setRemovingKey(rowKey);
+    markRemoving([rowKey], true);
 
     try {
       await removeBidFavorite(record.bidNo, record.bidOrd, record.announceDate);
-      setFavorites((prev) => prev.filter((item) => buildRowKey(item) !== rowKey));
-      setSelectedBid((current) => {
-        if (current?.favoriteSeq === record.favoriteSeq) {
-          setDrawerOpen(false);
-          return null;
-        }
-        return current;
-      });
+      removeFromList(new Set([rowKey]));
       message.success("즐겨찾기에서 삭제했습니다.");
     } catch (error) {
       const text = error instanceof Error ? error.message : "삭제에 실패했습니다.";
       message.error(text);
     } finally {
-      setRemovingKey(null);
+      markRemoving([rowKey], false);
     }
-  }, [message]);
+  }, [markRemoving, message, removeFromList]);
+
+  const handleBulkRemove = useCallback(async () => {
+    const records = favorites.filter((item) => selectedRowKeys.includes(buildRowKey(item)));
+    if (records.length === 0) {
+      return;
+    }
+
+    const rowKeys = records.map(buildRowKey);
+    setIsBulkRemoving(true);
+    markRemoving(rowKeys, true);
+
+    try {
+      const results = await Promise.allSettled(
+        records.map((record) => removeBidFavorite(record.bidNo, record.bidOrd, record.announceDate))
+      );
+
+      const removedKeys = new Set<string>();
+      let failCount = 0;
+
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") {
+          removedKeys.add(rowKeys[index]);
+        } else {
+          failCount += 1;
+        }
+      });
+
+      if (removedKeys.size > 0) {
+        removeFromList(removedKeys);
+      }
+
+      if (failCount === 0) {
+        message.success(`${removedKeys.size.toLocaleString("ko-KR")}건을 삭제했습니다.`);
+      } else if (removedKeys.size > 0) {
+        message.warning(
+          `${removedKeys.size.toLocaleString("ko-KR")}건 삭제, ${failCount.toLocaleString("ko-KR")}건 실패했습니다.`
+        );
+      } else {
+        message.error("삭제에 실패했습니다.");
+      }
+    } finally {
+      markRemoving(rowKeys, false);
+      setIsBulkRemoving(false);
+    }
+  }, [favorites, markRemoving, message, removeFromList, selectedRowKeys]);
 
   const handleConfirmRemove = useCallback(
     (record: BidFavorite) => {
@@ -123,6 +199,8 @@ export default function MyBidList() {
       || target.closest("a")
       || target.closest(".ant-popconfirm")
       || target.closest(".ant-popover")
+      || target.closest(".ant-checkbox-wrapper")
+      || target.closest(".ant-table-selection-column")
     );
   }, []);
 
@@ -231,7 +309,8 @@ export default function MyBidList() {
                 type="text"
                 danger
                 icon={<DeleteOutlined />}
-                loading={removingKey === buildRowKey(record)}
+                loading={removingKeys.has(buildRowKey(record))}
+                disabled={removingKeys.has(buildRowKey(record))}
                 aria-label="즐겨찾기 삭제"
                 onClick={(event) => event.stopPropagation()}
                 onMouseDown={(event) => event.stopPropagation()}
@@ -241,7 +320,7 @@ export default function MyBidList() {
         ),
       },
     ],
-    [handleConfirmRemove, removingKey]
+    [handleConfirmRemove, removingKeys]
   );
 
   if (isLoading) {
@@ -278,8 +357,35 @@ export default function MyBidList() {
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>
-        <span>내 공고리스트</span>
-        <span className={styles.count}>총 {favorites.length.toLocaleString("ko-KR")}건</span>
+        <div className={styles.headerMain}>
+          <span>내 공고리스트</span>
+          <span className={styles.count}>총 {favorites.length.toLocaleString("ko-KR")}건</span>
+        </div>
+        {selectedRowKeys.length > 0 ? (
+          <div className={styles.headerActions}>
+            <span className={styles.selectedCount}>
+              {selectedRowKeys.length.toLocaleString("ko-KR")}건 선택
+            </span>
+            <Popconfirm
+              title={`선택한 ${selectedRowKeys.length.toLocaleString("ko-KR")}건을 삭제할까요?`}
+              okText="삭제"
+              cancelText="취소"
+              okButtonProps={{ danger: true }}
+              onConfirm={() => {
+                suppressRowClickRef.current = true;
+                void handleBulkRemove().finally(() => {
+                  window.setTimeout(() => {
+                    suppressRowClickRef.current = false;
+                  }, 150);
+                });
+              }}
+            >
+              <Button danger icon={<DeleteOutlined />} loading={isBulkRemoving}>
+                선택 삭제
+              </Button>
+            </Popconfirm>
+          </div>
+        ) : null}
       </div>
       <Table<BidFavorite>
         className={styles.table}
@@ -289,6 +395,13 @@ export default function MyBidList() {
         size="middle"
         bordered
         scroll={{ x: 1400 }}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys),
+          getCheckboxProps: (record) => ({
+            disabled: removingKeys.has(buildRowKey(record)),
+          }),
+        }}
         rowClassName={() => styles.clickableRow}
         onRow={(record) => ({
           onClick: (event) => {

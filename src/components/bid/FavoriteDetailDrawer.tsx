@@ -173,7 +173,9 @@ export default function FavoriteDetailDrawer({
         if (uploaded) {
           message.success("구글 드라이브에 저장했습니다.");
         } else {
-          message.error("구글 드라이브 저장 결과를 확인하지 못했습니다.");
+          message.error(
+            "구글 드라이브 저장이 완료되지 않았거나 결과 확인에 실패했습니다. 잠시 후 목록을 새로고침해 주세요."
+          );
         }
       } catch (error) {
         const text = error instanceof Error ? error.message : "구글 드라이브 저장에 실패했습니다.";
