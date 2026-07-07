@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Button, Descriptions, Drawer, Spin, message } from "antd";
+import { Alert, App, Button, Descriptions, Drawer, Spin } from "antd";
 import { PaperClipOutlined, StarFilled, StarOutlined } from "@ant-design/icons";
 import { addBidFavorite, checkBidFavorite, getBidDetail, removeBidFavorite } from "@/lib/api";
 import type { BidDetail } from "@/types/bid";
@@ -44,6 +44,7 @@ export default function BidDetailDrawer({
   industryName,
   onClose,
 }: BidDetailDrawerProps) {
+  const { message } = App.useApp();
   const [detail, setDetail] = useState<BidDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -86,9 +87,9 @@ export default function BidDetailDrawer({
         setIsFavorite(false);
         message.success("즐겨찾기에서 삭제했습니다.");
       } else {
-        await addBidFavorite(bid);
+        await addBidFavorite(bid, { industryCode, industryName });
         setIsFavorite(true);
-        message.success("즐겨찾기에 저장했습니다.");
+        message.success("즐겨찾기에 저장했습니다. 첨부파일도 함께 저장됩니다.");
       }
     } catch (error) {
       const text = error instanceof Error ? error.message : "즐겨찾기 처리에 실패했습니다.";
@@ -96,7 +97,7 @@ export default function BidDetailDrawer({
     } finally {
       setIsFavoriteLoading(false);
     }
-  }, [bid, isFavorite, isFavoriteLoading]);
+  }, [bid, industryCode, industryName, isFavorite, isFavoriteLoading, message]);
 
   const displayBidNo = detail?.bidNo ?? bid?.bidNo ?? "-";
   const displayIndustry = detail?.industry ?? bid?.industry ?? "-";
@@ -129,6 +130,11 @@ export default function BidDetailDrawer({
       onClose={onClose}
       destroyOnHidden
     >
+      {bid && isFavoriteLoading && !isFavorite && (
+        <div className={styles.loadingBar}>
+          <span>첨부파일 저장 중…</span>
+        </div>
+      )}
       {bid && (
         <>
           <Descriptions bordered size="small" column={1}>

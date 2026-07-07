@@ -156,6 +156,17 @@ export default function BidSearchResults({
         onFilter: (value, record) => record.contractMethod === value,
       },
       {
+        title: "입찰방식",
+        dataIndex: "bidMethod",
+        key: "bidMethod",
+        width: 120,
+        ellipsis: true,
+        sorter: (a, b) => (a.bidMethod ?? "").localeCompare(b.bidMethod ?? "", "ko"),
+        filters: buildUniqueFilters(results, "bidMethod"),
+        filterSearch: true,
+        onFilter: (value, record) => record.bidMethod === value,
+      },
+      {
         title: "공고일자",
         dataIndex: "announceDate",
         key: "announceDate",
@@ -220,7 +231,7 @@ export default function BidSearchResults({
         dataSource={results}
         size="middle"
         bordered
-        scroll={{ x: 1320 }}
+        scroll={{ x: 1440 }}
         loading={isLoading}
         rowClassName={() => styles.clickableRow}
         onRow={(record) => ({

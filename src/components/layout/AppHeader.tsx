@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { LoginUser } from "@/types/auth";
+import NotebookLMStatusTag from "@/components/layout/NotebookLMStatusTag";
 import { NAV_ITEMS } from "./navItems";
 import styles from "./AppHeader.module.css";
 
@@ -38,6 +39,7 @@ export default function AppHeader({ user, onLogout }: AppHeaderProps) {
       </nav>
 
       <div className={styles.userArea}>
+        <NotebookLMStatusTag />
         <span className={styles.userName}>
           {user.userName}({user.userId})
         </span>

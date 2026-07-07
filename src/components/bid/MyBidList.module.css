@@ -1,16 +1,48 @@
 .wrap {
   background: #fff;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.count {
+  color: #2563eb;
+}
+
+.table {
+  padding: 0 16px 16px;
+}
+
+.link {
+  color: #2563eb;
+}
+
+.link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }
 
 .clickableRow {
   cursor: pointer;
 }
 
-.clickableRow:hover td {
-  background: #f8fafc !important;
+.actionCell {
+  display: inline-flex;
+  align-items: center;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
 }
 
 .empty {
@@ -42,6 +74,6 @@
   text-decoration: underline;
 }
 
-.removeFavoriteIcon {
-  color: #f59e0b;
+.retryButton {
+  margin-top: 16px;
 }

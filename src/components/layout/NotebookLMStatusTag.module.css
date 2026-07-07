@@ -1,0 +1,78 @@
+.notebookTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.notebookTagConnected {
+  color: #166534;
+  background: #ecfdf5;
+  border-color: #86efac;
+}
+
+.notebookTagPending {
+  color: #92400e;
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.notebookTagDisconnected {
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.notebookTag:hover {
+  filter: brightness(0.98);
+}
+
+.notebookDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.statusBox {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.hintList {
+  margin: 0;
+  padding-left: 18px;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.uploadRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uploadLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
