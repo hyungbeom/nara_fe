@@ -1,0 +1,97 @@
+.markdownBody {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 4px 2px;
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.markdownBody :global(h1),
+.markdownBody :global(h2),
+.markdownBody :global(h3),
+.markdownBody :global(h4) {
+  margin: 1.2em 0 0.6em;
+  color: #111827;
+  line-height: 1.35;
+}
+
+.markdownBody :global(h1) {
+  font-size: 1.5rem;
+}
+
+.markdownBody :global(h2) {
+  font-size: 1.25rem;
+}
+
+.markdownBody :global(h3) {
+  font-size: 1.1rem;
+}
+
+.markdownBody :global(p),
+.markdownBody :global(ul),
+.markdownBody :global(ol),
+.markdownBody :global(blockquote),
+.markdownBody :global(pre) {
+  margin: 0.75em 0;
+}
+
+.markdownBody :global(ul),
+.markdownBody :global(ol) {
+  padding-left: 1.4em;
+}
+
+.markdownBody :global(li) {
+  margin: 0.25em 0;
+}
+
+.markdownBody :global(blockquote) {
+  padding: 0.5em 1em;
+  border-left: 3px solid #d1d5db;
+  color: #4b5563;
+  background: #f9fafb;
+}
+
+.markdownBody :global(code) {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: #f3f4f6;
+  font-size: 0.92em;
+}
+
+.markdownBody :global(pre) {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #111827;
+  color: #f9fafb;
+  overflow-x: auto;
+}
+
+.markdownBody :global(pre code) {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.markdownBody :global(table) {
+  width: 100%;
+  margin: 1em 0;
+  border-collapse: collapse;
+}
+
+.markdownBody :global(th),
+.markdownBody :global(td) {
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.markdownBody :global(th) {
+  background: #f9fafb;
+}
+
+.markdownBody :global(hr) {
+  margin: 1.5em 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+}

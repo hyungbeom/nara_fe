@@ -1,0 +1,422 @@
+.explorer {
+  display: flex;
+  flex-direction: column;
+  min-height: 560px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.loadingWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+.setupPanel {
+  padding: 28px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.setupTitle {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.setupText {
+  margin-bottom: 16px;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.setupList {
+  margin: 0 0 16px 20px;
+  color: #374151;
+  line-height: 1.7;
+}
+
+.setupMeta {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f3f4f6;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.navGroup,
+.actionGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.addressBar {
+  padding: 10px 14px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.breadcrumbButton {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #1d4ed8;
+  cursor: pointer;
+}
+
+.breadcrumbButton:hover {
+  text-decoration: underline;
+}
+
+.error {
+  padding: 10px 14px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+}
+
+.filePane {
+  flex: 1;
+  min-height: 420px;
+}
+
+.tableRow {
+  cursor: default;
+}
+
+.tableRowSelected {
+  background: #eff6ff !important;
+}
+
+.nameCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: default;
+}
+
+.folderIcon {
+  color: #f59e0b;
+  font-size: 18px;
+}
+
+.fileIconPdf {
+  color: #dc2626;
+  font-size: 18px;
+}
+
+.fileIconImage {
+  color: #7c3aed;
+  font-size: 18px;
+}
+
+.fileIconExcel {
+  color: #059669;
+  font-size: 18px;
+}
+
+.fileIconWord {
+  color: #2563eb;
+  font-size: 18px;
+}
+
+.fileIconText {
+  color: #4b5563;
+  font-size: 18px;
+}
+
+.fileIconDefault {
+  color: #6b7280;
+  font-size: 18px;
+}
+
+.notebookMissingTag {
+  cursor: pointer;
+}
+
+.notebookMissingTag:hover {
+  color: #2563eb;
+  border-color: #2563eb;
+}
+
+.notebookExistsTag {
+  cursor: pointer;
+}
+
+.notebookExistsTag:hover {
+  color: #15803d;
+  border-color: #15803d;
+}
+
+.projectModalHint {
+  margin-bottom: 16px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.projectModalLoading {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.projectFileList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.projectFileItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.projectFileItem:hover {
+  background: #f9fafb;
+}
+
+.projectFileName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectFileMeta {
+  color: #6b7280;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.promptList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.promptItem {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.promptTurn {
+  flex-shrink: 0;
+  width: 28px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.promptContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.promptQuestion {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.promptMeta {
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.promptActions {
+  margin-top: 10px;
+}
+
+.promptAnswer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.stepButtonSection {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.stepRunStatusBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+}
+
+.stepRunStatusMeta {
+  color: #1d4ed8;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.stepButtonRowRunning {
+  padding: 4px;
+  border: 1px solid #91caff;
+  border-radius: 8px;
+  background: #f0f7ff;
+}
+
+.stepRunButtonRunning {
+  font-weight: 600;
+}
+
+.researchStatusBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.researchStatusMeta {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.stepButtonTitle {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.stepButtonHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.stepButtonList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stepButtonRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepRunButton {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.sourceChecklistSection {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.sourceChecklistHint {
+  margin-bottom: 12px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.sourceChecklist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.sourceChecklistItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sourceChecklistItem:hover {
+  background: #f9fafb;
+}
+
+.sourceChecklistName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sourceChecklistTag {
+  margin-inline-end: 0;
+}
+
+.researchReportSection {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.researchReportCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.researchReportName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #111827;
+  font-size: 13px;
+}

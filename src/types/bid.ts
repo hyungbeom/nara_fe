@@ -66,6 +66,7 @@ export interface BidSearchResult {
   bidName: string;
   industry: string;
   contractMethod: string;
+  bidMethod: string;
   announceDate: string;
   openingDate: string;
   estimatedPrice: number;
@@ -73,8 +74,23 @@ export interface BidSearchResult {
   detailUrl?: string;
 }
 
+export interface BidFavoriteAttachment {
+  attachmentSeq: number;
+  fileName: string;
+  originalFileName: string;
+  contentType?: string;
+  fileSize?: number;
+  convertedFromHwpx: boolean;
+  googleDriveFileId?: string;
+}
+
 export interface BidFavorite extends BidSearchResult {
   favoriteSeq: number;
+  detailContent?: string;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  attachments?: BidFavoriteAttachment[];
   createdAt: string;
 }
 

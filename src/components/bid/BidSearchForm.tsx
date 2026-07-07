@@ -16,14 +16,40 @@ function formatDisplayDate(value: string) {
   return value.replaceAll("-", "/");
 }
 
-function getDefaultDateRange() {
-  const end = new Date();
-  const start = new Date();
+function getDefaultDateRange(dateType: DateQueryType) {
+  const today = new Date();
+  if (dateType === "openingDate") {
+    const end = new Date(today);
+    end.setDate(end.getDate() + 14);
+    return {
+      startDate: formatDate(today),
+      endDate: formatDate(end),
+    };
+  }
+
+  const end = new Date(today);
+  const start = new Date(today);
   start.setDate(start.getDate() - 14);
   return {
     startDate: formatDate(start),
     endDate: formatDate(end),
   };
+}
+
+function addDays(base: Date, days: number) {
+  const next = new Date(base);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+const PRICE_UNIT = 1_000_000;
+
+function toWonFromMillion(value: string) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount < 0) {
+    return undefined;
+  }
+  return amount * PRICE_UNIT;
 }
 
 type BidSearchFormProps = {
@@ -32,23 +58,33 @@ type BidSearchFormProps = {
 };
 
 export default function BidSearchForm({ onSearch, isSearching }: BidSearchFormProps) {
-  const defaultRange = useMemo(() => getDefaultDateRange(), []);
-
   const [bidName, setBidName] = useState("");
   const [industry, setIndustry] = useState(DEFAULT_INDUSTRY_NAME);
   const [industryCode, setIndustryCode] = useState(DEFAULT_INDUSTRY_CODE);
   const [dateType, setDateType] = useState<DateQueryType>("announceDate");
+  const defaultRange = useMemo(() => getDefaultDateRange("announceDate"), []);
   const [startDate, setStartDate] = useState(defaultRange.startDate);
   const [endDate, setEndDate] = useState(defaultRange.endDate);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
-  const applyMonthRange = (months: number) => {
-    const end = new Date();
-    const start = new Date();
-    start.setMonth(start.getMonth() - months);
-    setStartDate(formatDate(start));
-    setEndDate(formatDate(end));
+  const applyPeriodRange = (days: number) => {
+    const today = new Date();
+    if (dateType === "openingDate") {
+      setStartDate(formatDate(today));
+      setEndDate(formatDate(addDays(today, days)));
+      return;
+    }
+
+    setEndDate(formatDate(today));
+    setStartDate(formatDate(addDays(today, -days)));
+  };
+
+  const handleDateTypeChange = (nextDateType: DateQueryType) => {
+    setDateType(nextDateType);
+    const nextRange = getDefaultDateRange(nextDateType);
+    setStartDate(nextRange.startDate);
+    setEndDate(nextRange.endDate);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -61,8 +97,8 @@ export default function BidSearchForm({ onSearch, isSearching }: BidSearchFormPr
       dateType,
       startDate,
       endDate,
-      minPrice: minPrice ? Number(minPrice) : undefined,
-      maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      minPrice: minPrice ? toWonFromMillion(minPrice) : undefined,
+      maxPrice: maxPrice ? toWonFromMillion(maxPrice) : undefined,
     });
   };
 
@@ -116,7 +152,7 @@ export default function BidSearchForm({ onSearch, isSearching }: BidSearchFormPr
             <select
               className={styles.select}
               value={dateType}
-              onChange={(event) => setDateType(event.target.value as DateQueryType)}
+              onChange={(event) => handleDateTypeChange(event.target.value as DateQueryType)}
               aria-label="일자 구분"
             >
               <option value="announceDate">공고일자</option>
@@ -140,14 +176,14 @@ export default function BidSearchForm({ onSearch, isSearching }: BidSearchFormPr
               />
             </div>
             <div className={styles.monthButtons}>
-              <button className={styles.monthButton} type="button" onClick={() => applyMonthRange(1)}>
-                1개월
+              <button className={styles.monthButton} type="button" onClick={() => applyPeriodRange(3)}>
+                3일
               </button>
-              <button className={styles.monthButton} type="button" onClick={() => applyMonthRange(3)}>
-                3개월
+              <button className={styles.monthButton} type="button" onClick={() => applyPeriodRange(7)}>
+                1주일
               </button>
-              <button className={styles.monthButton} type="button" onClick={() => applyMonthRange(6)}>
-                6개월
+              <button className={styles.monthButton} type="button" onClick={() => applyPeriodRange(14)}>
+                2주일
               </button>
             </div>
           </div>
@@ -163,20 +199,20 @@ export default function BidSearchForm({ onSearch, isSearching }: BidSearchFormPr
               className={styles.priceInput}
               type="number"
               min="0"
-              placeholder=""
+              placeholder="500"
               value={minPrice}
               onChange={(event) => setMinPrice(event.target.value)}
             />
-            <span className={styles.priceUnit}>원 이상</span>
+            <span className={styles.priceUnit}>백만원 이상</span>
             <input
               className={styles.priceInput}
               type="number"
               min="0"
-              placeholder=""
+              placeholder="1000"
               value={maxPrice}
               onChange={(event) => setMaxPrice(event.target.value)}
             />
-            <span className={styles.priceUnit}>원 이하</span>
+            <span className={styles.priceUnit}>백만원 이하</span>
           </div>
         </div>
       </div>
