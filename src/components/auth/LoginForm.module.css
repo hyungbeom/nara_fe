@@ -48,6 +48,23 @@
   color: var(--color-error);
 }
 
+.rememberRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.rememberCheckbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+
 .submit {
   height: 44px;
   margin-top: 8px;

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { BidSearchRequest, DateQueryType } from "@/types/bid";
 import { DEFAULT_INDUSTRY_CODE, DEFAULT_INDUSTRY_NAME } from "@/types/bid";
 import styles from "./BidSearchForm.module.css";
@@ -52,21 +52,75 @@ function toWonFromMillion(value: string) {
   return amount * PRICE_UNIT;
 }
 
+function toMillionFromWon(value?: number) {
+  if (value == null || !Number.isFinite(value)) {
+    return "";
+  }
+  return String(value / PRICE_UNIT);
+}
+
+function buildFormStateFromCriteria(criteria: BidSearchRequest) {
+  return {
+    bidName: criteria.bidName ?? "",
+    industry: criteria.industry ?? DEFAULT_INDUSTRY_NAME,
+    industryCode: criteria.industryCode ?? DEFAULT_INDUSTRY_CODE,
+    dateType: criteria.dateType ?? "announceDate",
+    startDate: criteria.startDate,
+    endDate: criteria.endDate,
+    minPrice: toMillionFromWon(criteria.minPrice),
+    maxPrice: toMillionFromWon(criteria.maxPrice),
+  };
+}
+
+function buildDefaultFormState() {
+  const defaultRange = getDefaultDateRange("announceDate");
+  return {
+    bidName: "",
+    industry: DEFAULT_INDUSTRY_NAME,
+    industryCode: DEFAULT_INDUSTRY_CODE,
+    dateType: "announceDate" as DateQueryType,
+    startDate: defaultRange.startDate,
+    endDate: defaultRange.endDate,
+    minPrice: "",
+    maxPrice: "",
+  };
+}
+
 type BidSearchFormProps = {
+  initialCriteria?: BidSearchRequest | null;
   onSearch: (criteria: BidSearchRequest) => void;
   isSearching: boolean;
 };
 
-export default function BidSearchForm({ onSearch, isSearching }: BidSearchFormProps) {
-  const [bidName, setBidName] = useState("");
-  const [industry, setIndustry] = useState(DEFAULT_INDUSTRY_NAME);
-  const [industryCode, setIndustryCode] = useState(DEFAULT_INDUSTRY_CODE);
-  const [dateType, setDateType] = useState<DateQueryType>("announceDate");
-  const defaultRange = useMemo(() => getDefaultDateRange("announceDate"), []);
-  const [startDate, setStartDate] = useState(defaultRange.startDate);
-  const [endDate, setEndDate] = useState(defaultRange.endDate);
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
+export default function BidSearchForm({ initialCriteria, onSearch, isSearching }: BidSearchFormProps) {
+  const initialFormState = useMemo(
+    () => (initialCriteria ? buildFormStateFromCriteria(initialCriteria) : buildDefaultFormState()),
+    [initialCriteria]
+  );
+
+  const [bidName, setBidName] = useState(initialFormState.bidName);
+  const [industry, setIndustry] = useState(initialFormState.industry);
+  const [industryCode, setIndustryCode] = useState(initialFormState.industryCode);
+  const [dateType, setDateType] = useState<DateQueryType>(initialFormState.dateType);
+  const [startDate, setStartDate] = useState(initialFormState.startDate);
+  const [endDate, setEndDate] = useState(initialFormState.endDate);
+  const [minPrice, setMinPrice] = useState(initialFormState.minPrice);
+  const [maxPrice, setMaxPrice] = useState(initialFormState.maxPrice);
+
+  useEffect(() => {
+    if (!initialCriteria) {
+      return;
+    }
+    const nextState = buildFormStateFromCriteria(initialCriteria);
+    setBidName(nextState.bidName);
+    setIndustry(nextState.industry);
+    setIndustryCode(nextState.industryCode);
+    setDateType(nextState.dateType);
+    setStartDate(nextState.startDate);
+    setEndDate(nextState.endDate);
+    setMinPrice(nextState.minPrice);
+    setMaxPrice(nextState.maxPrice);
+  }, [initialCriteria]);
 
   const applyPeriodRange = (days: number) => {
     const today = new Date();

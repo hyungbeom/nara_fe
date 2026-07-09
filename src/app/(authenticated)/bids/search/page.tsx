@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BidSearchForm from "@/components/bid/BidSearchForm";
 import BidSearchResults from "@/components/bid/BidSearchResults";
@@ -71,7 +71,8 @@ function parseCriteriaFromUrl(searchParams: URLSearchParams): BidSearchRequest |
 function BidSearchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [criteria, setCriteria] = useState<BidSearchRequest | null>(null);
+  const urlCriteria = useMemo(() => parseCriteriaFromUrl(searchParams), [searchParams]);
+  const [criteria, setCriteria] = useState<BidSearchRequest | null>(urlCriteria);
   const [page, setPage] = useState<BidSearchPage>(EMPTY_PAGE);
   const [hasSearched, setHasSearched] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -194,7 +195,7 @@ function BidSearchPageContent() {
     <>
       <h1 className={styles.pageTitle}>공고검색</h1>
 
-      <BidSearchForm onSearch={handleSearch} isSearching={isLoading} />
+      <BidSearchForm initialCriteria={urlCriteria} onSearch={handleSearch} isSearching={isLoading} />
       {errorMessage && <div className={styles.error}>{errorMessage}</div>}
       <BidSearchResults
         page={page}

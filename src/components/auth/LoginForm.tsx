@@ -1,9 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/lib/api";
 import styles from "./LoginForm.module.css";
+
+const REMEMBER_USER_ID_KEY = "nara.rememberUserId";
+const SAVED_USER_ID_KEY = "nara.savedUserId";
 
 type FormErrors = {
   userId?: string;
@@ -15,8 +18,36 @@ export default function LoginForm() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberUserId, setRememberUserId] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+
+  useEffect(() => {
+    try {
+      const shouldRemember = localStorage.getItem(REMEMBER_USER_ID_KEY) === "true";
+      const savedUserId = localStorage.getItem(SAVED_USER_ID_KEY);
+      if (shouldRemember && savedUserId) {
+        setUserId(savedUserId);
+        setRememberUserId(true);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  const persistRememberedUserId = (nextUserId: string, shouldRemember: boolean) => {
+    try {
+      if (shouldRemember) {
+        localStorage.setItem(REMEMBER_USER_ID_KEY, "true");
+        localStorage.setItem(SAVED_USER_ID_KEY, nextUserId.trim());
+        return;
+      }
+      localStorage.removeItem(REMEMBER_USER_ID_KEY);
+      localStorage.removeItem(SAVED_USER_ID_KEY);
+    } catch {
+      // ignore storage errors
+    }
+  };
 
   const validate = () => {
     const nextErrors: FormErrors = {};
@@ -45,6 +76,7 @@ export default function LoginForm() {
 
     try {
       await login({ userId, password });
+      persistRememberedUserId(userId, rememberUserId);
       router.replace("/dashboard");
       router.refresh();
     } catch (error) {
@@ -92,6 +124,16 @@ export default function LoginForm() {
         />
         {errors.password && <span className={styles.errorText}>{errors.password}</span>}
       </div>
+
+      <label className={styles.rememberRow}>
+        <input
+          type="checkbox"
+          className={styles.rememberCheckbox}
+          checked={rememberUserId}
+          onChange={(event) => setRememberUserId(event.target.checked)}
+        />
+        <span>아이디 저장</span>
+      </label>
 
       <button className={styles.submit} type="submit" disabled={isSubmitting}>
         {isSubmitting ? "로그인 중..." : "로그인"}

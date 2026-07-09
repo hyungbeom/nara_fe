@@ -102,9 +102,45 @@
   word-break: break-word;
 }
 
-.favoriteButton {
+.drawerTitleActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
   margin-top: -4px;
+}
+
+.analysisButton {
+  color: #64748b;
+  font-size: 20px;
+}
+
+.analysisButton:hover {
+  color: #2563eb !important;
+}
+
+.analysisButtonActive {
+  color: #2563eb;
+}
+
+.analysisButtonQualified {
+  color: #16a34a;
+}
+
+.analysisButtonQualified:hover {
+  color: #15803d !important;
+}
+
+.analysisButtonDisqualified {
+  color: #dc2626;
+}
+
+.analysisButtonDisqualified:hover {
+  color: #b91c1c !important;
+}
+
+.favoriteButton {
+  flex-shrink: 0;
   color: #94a3b8;
   font-size: 20px;
 }

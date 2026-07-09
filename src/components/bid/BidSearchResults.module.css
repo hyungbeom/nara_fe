@@ -58,6 +58,19 @@
   color: #1d4ed8;
 }
 
+.qualificationAnalyzeTag {
+  cursor: pointer;
+}
+
+.qualificationAnalyzeTag:hover {
+  color: #2563eb;
+  border-color: #2563eb;
+}
+
+.qualificationTag {
+  cursor: pointer;
+}
+
 .clickableRow {
   cursor: pointer;
 }

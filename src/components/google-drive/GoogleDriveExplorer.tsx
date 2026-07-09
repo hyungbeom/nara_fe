@@ -48,19 +48,24 @@ import {
   getNotebookLMSteps,
   getGoogleDriveDownloadUrl,
   getGoogleDriveStatus,
+  getAnthropicStatus,
+  listAnthropicQualificationJobs,
   listGoogleDriveFiles,
   renameGoogleDriveFile,
   runNotebookLMStep,
   saveNotebookLMSteps,
+  startAnthropicQualificationJob,
   updateNotebookLMProjectSourceSelection,
   uploadGoogleDriveFile,
 } from "@/lib/api";
 import MarkdownPreviewModal from "@/components/notebooklm/MarkdownPreviewModal";
+import QualificationResultModal from "@/components/anthropic/QualificationResultModal";
 import NotebookSummaryPanel from "@/components/notebooklm/NotebookSummaryPanel";
 import PromptResultCard from "@/components/notebooklm/PromptResultCard";
 import StepPromptEditorModal from "@/components/notebooklm/StepPromptEditorModal";
 import { buildPromptsWithActiveStepRun, deriveCompletedStepIds } from "@/components/notebooklm/notebooklmPrompt";
 import type { GoogleDriveFile, GoogleDriveList, GoogleDriveStatus } from "@/types/googleDrive";
+import type { AnthropicQualificationJob } from "@/types/anthropic";
 import type { NotebookLMProjectPrompt, NotebookLMProjectSourceItem, NotebookLMProjectSummary, NotebookLMResearchStatus, NotebookLMStep, NotebookLMStepRunStatus } from "@/types/notebooklm";
 import styles from "./GoogleDriveExplorer.module.css";
 
@@ -196,6 +201,12 @@ export default function GoogleDriveExplorer() {
   const [loadingSourcePreviewId, setLoadingSourcePreviewId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const dragDepthRef = useRef(0);
+  const [anthropicConfigured, setAnthropicConfigured] = useState(false);
+  const [qualificationByFolderId, setQualificationByFolderId] = useState<Record<string, AnthropicQualificationJob>>({});
+  const [isLoadingQualification, setIsLoadingQualification] = useState(false);
+  const [startingQualificationFolderId, setStartingQualificationFolderId] = useState<string | null>(null);
+  const [qualificationModalJob, setQualificationModalJob] = useState<AnthropicQualificationJob | null>(null);
+  const [qualificationModalFolder, setQualificationModalFolder] = useState<GoogleDriveFile | null>(null);
 
   const researchReportSource = useMemo(
     () => notebookSources.find((source) => source.category === "research_report") ?? null,
@@ -253,6 +264,69 @@ export default function GoogleDriveExplorer() {
     }
   }, []);
 
+  const loadQualificationStatus = useCallback(async (files: GoogleDriveFile[]) => {
+    const folderIds = files.filter((file) => file.folder).map((file) => file.id);
+    if (folderIds.length === 0) {
+      setQualificationByFolderId({});
+      return;
+    }
+
+    setIsLoadingQualification(true);
+    try {
+      const jobs = await listAnthropicQualificationJobs({ driveFolderIds: folderIds });
+      const nextMap: Record<string, AnthropicQualificationJob> = {};
+      for (const job of jobs) {
+        if (job.driveFolderId) {
+          nextMap[job.driveFolderId] = job;
+        }
+      }
+      setQualificationByFolderId(nextMap);
+    } catch {
+      setQualificationByFolderId({});
+    } finally {
+      setIsLoadingQualification(false);
+    }
+  }, []);
+
+  const openQualificationResult = useCallback((job: AnthropicQualificationJob, folder?: GoogleDriveFile) => {
+    setQualificationModalJob(job);
+    setQualificationModalFolder(folder ?? null);
+  }, []);
+
+  const openQualificationModal = useCallback((folder: GoogleDriveFile, job?: AnthropicQualificationJob | null) => {
+    setQualificationModalFolder(folder);
+    setQualificationModalJob(job ?? qualificationByFolderId[folder.id] ?? null);
+  }, [qualificationByFolderId]);
+
+  const startQualificationCheck = useCallback(
+    async (folder: GoogleDriveFile) => {
+      if (!anthropicConfigured) {
+        message.warning("Claude API 연동이 필요합니다.");
+        return;
+      }
+
+      setStartingQualificationFolderId(folder.id);
+      openQualificationModal(folder);
+      try {
+        const job = await startAnthropicQualificationJob({
+          projectName: folder.name,
+          driveFolderId: folder.id,
+        });
+        setQualificationByFolderId((prev) => ({
+          ...prev,
+          [folder.id]: job,
+        }));
+        setQualificationModalJob(job);
+        message.success("적격 검사를 시작했습니다.");
+      } catch (error) {
+        message.error(error instanceof Error ? error.message : "적격 검사를 시작하지 못했습니다.");
+      } finally {
+        setStartingQualificationFolderId(null);
+      }
+    },
+    [anthropicConfigured, message, openQualificationModal]
+  );
+
   const selectedFile = useMemo(
     () => listing?.files.find((file) => file.id === selectedFileId) ?? null,
     [listing, selectedFileId]
@@ -267,6 +341,7 @@ export default function GoogleDriveExplorer() {
       setListing(data);
       setSelectedFileId(null);
       void loadNotebookProjectStatus(data.files);
+      void loadQualificationStatus(data.files);
       if (options?.pushHistory && folderId) {
         setHistory((prev) => [...prev, folderId]);
       }
@@ -278,15 +353,16 @@ export default function GoogleDriveExplorer() {
     } finally {
       setIsLoading(false);
     }
-  }, [loadNotebookProjectStatus]);
+  }, [loadNotebookProjectStatus, loadQualificationStatus]);
 
   const initialize = useCallback(async () => {
     setIsInitializing(true);
     setErrorMessage("");
 
     try {
-      const driveStatus = await getGoogleDriveStatus();
+      const [driveStatus, anthropicStatus] = await Promise.all([getGoogleDriveStatus(), getAnthropicStatus()]);
       setStatus(driveStatus);
+      setAnthropicConfigured(anthropicStatus.enabled && anthropicStatus.configured);
 
       if (!driveStatus.available) {
         setListing(null);
@@ -306,6 +382,63 @@ export default function GoogleDriveExplorer() {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    if (!qualificationModalFolder) {
+      return;
+    }
+    const latestJob = qualificationByFolderId[qualificationModalFolder.id];
+    if (latestJob) {
+      setQualificationModalJob(latestJob);
+    }
+  }, [qualificationByFolderId, qualificationModalFolder]);
+
+  useEffect(() => {
+    const hasActiveJobs = Object.values(qualificationByFolderId).some(
+      (job) => job.status === "pending" || job.status === "in_progress"
+    );
+    if (!hasActiveJobs) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      void (async () => {
+        try {
+          const activeJobs = await listAnthropicQualificationJobs({ activeOnly: true });
+          if (activeJobs.length === 0) {
+            const folderIds = listing?.files.filter((file) => file.folder).map((file) => file.id) ?? [];
+            if (folderIds.length > 0) {
+              const jobs = await listAnthropicQualificationJobs({ driveFolderIds: folderIds });
+              setQualificationByFolderId((prev) => {
+                const next = { ...prev };
+                for (const job of jobs) {
+                  if (job.driveFolderId) {
+                    next[job.driveFolderId] = job;
+                  }
+                }
+                return next;
+              });
+            }
+            return;
+          }
+
+          setQualificationByFolderId((prev) => {
+            const next = { ...prev };
+            for (const job of activeJobs) {
+              if (job.driveFolderId) {
+                next[job.driveFolderId] = job;
+              }
+            }
+            return next;
+          });
+        } catch {
+          // ignore polling errors
+        }
+      })();
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [listing?.files, qualificationByFolderId]);
 
   const openFolder = useCallback(
     async (file: GoogleDriveFile) => {
@@ -1071,6 +1204,83 @@ export default function GoogleDriveExplorer() {
         );
       },
     },
+    {
+      title: "상태확인",
+      key: "qualification",
+      width: 120,
+      align: "center",
+      render: (_, record) => {
+        if (!record.folder) {
+          return "-";
+        }
+        if (!anthropicConfigured) {
+          return <Tag>미연동</Tag>;
+        }
+        if (isLoadingQualification && !qualificationByFolderId[record.id]) {
+          return <Tag color="processing">확인 중</Tag>;
+        }
+
+        const job = qualificationByFolderId[record.id];
+        const isStarting = startingQualificationFolderId === record.id;
+
+        if (isStarting || job?.status === "pending" || job?.status === "in_progress") {
+          return (
+            <Tag
+              color="processing"
+              className={styles.qualificationAnalyzeTag}
+              onClick={(event) => {
+                event.stopPropagation();
+                openQualificationModal(record, job);
+              }}
+            >
+              분석
+            </Tag>
+          );
+        }
+
+        if (job?.status === "completed") {
+          if (job.resultStatus === "qualified") {
+            return (
+              <Tag
+                color="success"
+                className={styles.qualificationTag}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openQualificationResult(job, record);
+                }}
+              >
+                적격
+              </Tag>
+            );
+          }
+          return (
+            <Tag
+              color="error"
+              className={styles.qualificationTag}
+              onClick={(event) => {
+                event.stopPropagation();
+                openQualificationResult(job, record);
+              }}
+            >
+              부적격
+            </Tag>
+          );
+        }
+
+        return (
+          <Tag
+            color="default"
+            className={styles.qualificationAnalyzeTag}
+            onClick={(event) => {
+              event.stopPropagation();
+              void startQualificationCheck(record);
+            }}
+          >
+            분석
+          </Tag>
+        );
+      },
+    },
   ];
 
   if (isInitializing) {
@@ -1453,6 +1663,23 @@ export default function GoogleDriveExplorer() {
         title={markdownPreview?.title ?? "마크다운 미리보기"}
         content={markdownPreview?.content ?? ""}
         onClose={() => setMarkdownPreview(null)}
+      />
+      <QualificationResultModal
+        open={qualificationModalFolder != null}
+        projectName={qualificationModalFolder?.name}
+        job={qualificationModalJob}
+        onClose={() => {
+          setQualificationModalJob(null);
+          setQualificationModalFolder(null);
+        }}
+        reanalyzing={qualificationModalFolder != null && startingQualificationFolderId === qualificationModalFolder.id}
+        onReanalyze={
+          qualificationModalFolder
+            ? () => {
+                void startQualificationCheck(qualificationModalFolder);
+              }
+            : undefined
+        }
       />
     </div>
   );

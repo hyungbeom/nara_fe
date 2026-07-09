@@ -54,3 +54,45 @@ export type AnthropicPptJobStartRequest = {
   prompt: string;
   attachmentFileIds: string[];
 };
+
+export type AnthropicQualificationJobStatus = "pending" | "in_progress" | "completed" | "failed";
+
+export type AnthropicQualificationResultStatus = "qualified" | "disqualified";
+
+export type AnthropicQualificationCondition = {
+  id: string;
+  title: string;
+  status: AnthropicQualificationResultStatus | "unknown";
+  reason: string;
+};
+
+export type AnthropicQualificationJob = {
+  jobId: string;
+  sourceType?: "drive" | "bid";
+  projectName: string;
+  driveFolderId?: string;
+  bidKey?: string;
+  bidNo?: string;
+  bidOrd?: string;
+  announceDate?: string;
+  status: AnthropicQualificationJobStatus;
+  resultStatus?: AnthropicQualificationResultStatus;
+  summary?: string;
+  conditions?: AnthropicQualificationCondition[];
+  proposalOutline?: string;
+  attachmentCount?: number;
+  errorMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AnthropicQualificationJobStartRequest = {
+  sourceType?: "drive" | "bid";
+  projectName: string;
+  driveFolderId?: string;
+  bidNo?: string;
+  bidOrd?: string;
+  announceDate?: string;
+  industryCode?: string;
+  industryName?: string;
+};

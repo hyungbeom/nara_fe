@@ -1,4 +1,13 @@
-import type { AnthropicConversationHistory, AnthropicMessageResult, AnthropicPptJob, AnthropicPptJobStartRequest, AnthropicProjectCheckResult, AnthropicStatus } from "@/types/anthropic";
+import type {
+  AnthropicConversationHistory,
+  AnthropicMessageResult,
+  AnthropicPptJob,
+  AnthropicPptJobStartRequest,
+  AnthropicProjectCheckResult,
+  AnthropicQualificationJob,
+  AnthropicQualificationJobStartRequest,
+  AnthropicStatus,
+} from "@/types/anthropic";
 import type { ApiResponse, LoginRequest, LoginUser } from "@/types/auth";
 import type { BidDetail, BidFavorite, BidFavoriteAttachment, BidSearchPage, BidSearchRequest } from "@/types/bid";
 import type { GoogleDriveFile, GoogleDriveList, GoogleDriveStatus } from "@/types/googleDrive";
@@ -416,4 +425,34 @@ export function listAnthropicPptJobs(options?: { driveFolderIds?: string[]; acti
   }
   const query = params.toString();
   return request<AnthropicPptJob[]>(`/api/anthropic/ppt-jobs${query ? `?${query}` : ""}`);
+}
+
+export function startAnthropicQualificationJob(payload: AnthropicQualificationJobStartRequest) {
+  return request<AnthropicQualificationJob>("/api/anthropic/qualification-jobs", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getAnthropicQualificationJob(jobId: string) {
+  return request<AnthropicQualificationJob>(`/api/anthropic/qualification-jobs/${jobId}`);
+}
+
+export function listAnthropicQualificationJobs(options?: {
+  driveFolderIds?: string[];
+  bidKeys?: string[];
+  activeOnly?: boolean;
+}) {
+  const params = new URLSearchParams();
+  if (options?.driveFolderIds && options.driveFolderIds.length > 0) {
+    params.set("driveFolderIds", options.driveFolderIds.join(","));
+  }
+  if (options?.bidKeys && options.bidKeys.length > 0) {
+    params.set("bidKeys", options.bidKeys.join(","));
+  }
+  if (options?.activeOnly) {
+    params.set("activeOnly", "true");
+  }
+  const query = params.toString();
+  return request<AnthropicQualificationJob[]>(`/api/anthropic/qualification-jobs${query ? `?${query}` : ""}`);
 }

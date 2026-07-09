@@ -71,9 +71,14 @@ export interface BidSearchResult {
   jointSupply: string;
   announceDate: string;
   openingDate: string;
+  bidCloseDate?: string;
   estimatedPrice: number;
   agency: string;
   detailUrl?: string;
+}
+
+export function buildBidKey(bid: Pick<BidSearchResult, "bidNo" | "bidOrd" | "announceDate">) {
+  return `${bid.bidNo}|${bid.bidOrd}|${bid.announceDate}`;
 }
 
 export interface BidFavoriteAttachment {

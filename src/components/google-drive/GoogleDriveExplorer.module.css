@@ -194,6 +194,19 @@
   border-color: #15803d;
 }
 
+.qualificationAnalyzeTag {
+  cursor: pointer;
+}
+
+.qualificationAnalyzeTag:hover {
+  color: #2563eb;
+  border-color: #2563eb;
+}
+
+.qualificationTag {
+  cursor: pointer;
+}
+
 .claudeReadyTag {
   cursor: pointer;
 }
