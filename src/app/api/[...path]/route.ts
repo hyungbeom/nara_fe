@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8080";
+const BACKEND_URL = process.env.BACKEND_URL ?? "http://211.192.191.42:9000";
 
 /** rewrite 프록시 기본 30초 제한을 피하기 위해 Route Handler 로 백엔드에 직접 프록시 */
 export const maxDuration = 300;
