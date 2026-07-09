@@ -1,0 +1,13 @@
+.pageTitle {
+  margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.pageDesc {
+  margin: -12px 0 20px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+}

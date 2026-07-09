@@ -1,0 +1,148 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sectionTitle {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.supportSection {
+  padding: 14px 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #eff6ff;
+}
+
+.supportList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.supportItem {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.supportIndex {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 22px;
+  text-align: center;
+}
+
+.supportContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.supportItemTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.supportItemDescription {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #374151;
+  white-space: pre-wrap;
+}
+
+.resultSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summaryText {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.metaText {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.errorText {
+  margin: 0;
+  color: #dc2626;
+}
+
+.conditionList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.conditionCard {
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.conditionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.conditionReason {
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.analyzingBox {
+  padding: 12px 14px;
+  border: 1px dashed #93c5fd;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.outlineSection {
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.outlineContent {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  background: #fafafa;
+  color: #111827;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 420px;
+  overflow: auto;
+}

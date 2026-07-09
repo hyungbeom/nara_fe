@@ -1,0 +1,162 @@
+.wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+.calendarCard,
+.sideCard {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.calendarHeader,
+.sideHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.calendarHeaderTitle,
+.sideHeaderTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.calendarBody {
+  padding: 12px;
+}
+
+.calendarBody :global(.ant-picker-calendar) {
+  background: transparent;
+}
+
+.calendarBody :global(.ant-picker-calendar-date-content) {
+  min-height: 72px;
+}
+
+.eventList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eventItem {
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eventButton {
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #1d4ed8;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.eventButton:hover {
+  text-decoration: underline;
+}
+
+.moreLabel {
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.sideBody {
+  padding: 12px 16px 16px;
+}
+
+.emptySide {
+  padding: 24px 8px;
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+}
+
+.bidCard {
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.bidCard + .bidCard {
+  margin-top: 10px;
+}
+
+.bidNameButton {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #1d4ed8;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bidNameButton:hover {
+  text-decoration: underline;
+}
+
+.bidMeta {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.summaryBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.summaryItem {
+  padding: 10px 14px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 13px;
+}
+
+.loadingWrap {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.error {
+  margin-bottom: 16px;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
